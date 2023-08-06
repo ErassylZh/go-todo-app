@@ -9,5 +9,7 @@ func SetupRoutes(r *gin.Engine, th *TaskHandler) {
 	{
 		api.POST("/task", th.AddTask)
 		api.GET("/tasks", th.GetTasks)
+		api.PUT("/task", th.UpdateTask)
+		api.DELETE("/task/:id", th.DeleteTask)
 	}
 }
