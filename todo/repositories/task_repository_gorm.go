@@ -2,11 +2,11 @@ package repositories
 
 import (
 	"gorm.io/gorm"
-	"my_first_go_project/models"
+	"my_first_go_project/todo/models"
 )
 
 type TaskRepository interface {
-	Add(task models.Task)
+	Add(task models.Task) (*models.Task, error)
 	GetAll() []models.Task
 	Update(task models.Task)
 	Delete(id int)
@@ -17,12 +17,13 @@ type TaskRepositoryGORM struct {
 	db *gorm.DB
 }
 
-func NewTaskRepositoryGORM(db *gorm.DB) TaskRepository {
+func NewTaskRepositoryGORM(db *gorm.DB) *TaskRepositoryGORM {
 	return &TaskRepositoryGORM{db: db}
 }
 
-func (tr *TaskRepositoryGORM) Add(task models.Task) {
+func (tr *TaskRepositoryGORM) Add(task models.Task) (*models.Task, error) {
 	tr.db.Create(&task)
+	return &task, nil
 }
 
 func (tr *TaskRepositoryGORM) GetAll() []models.Task {

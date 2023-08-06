@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"my_first_go_project/models"
-	"my_first_go_project/services"
+	"my_first_go_project/todo/models"
+	"my_first_go_project/todo/services"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type TaskHandler struct {
@@ -13,17 +14,32 @@ type TaskHandler struct {
 }
 
 func NewTaskHandler(taskService services.TaskService) *TaskHandler {
-	return &TaskHandler{taskService: taskService}
+	return &TaskHandler{
+		taskService: taskService,
+	}
 }
 
 func (th *TaskHandler) AddTask(c *gin.Context) {
+	tokenString := c.GetHeader("Authorization")
+	if tokenString == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token missing"})
+		return
+	}
+	tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
+
 	var task models.Task
 	if err := c.ShouldBindJSON(&task); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	th.taskService.AddTask(task)
-	c.Status(http.StatusCreated)
+
+	createdTask, err := th.taskService.AddTask(task, tokenString)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create task  " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, createdTask)
 }
 
 func (th *TaskHandler) GetTasks(c *gin.Context) {
@@ -32,13 +48,26 @@ func (th *TaskHandler) GetTasks(c *gin.Context) {
 }
 
 func (th *TaskHandler) UpdateTask(c *gin.Context) {
+	tokenString := c.GetHeader("Authorization")
+	if tokenString == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token missing"})
+		return
+	}
+
+	taskID := c.Param("id")
 	var task models.Task
 	if err := c.ShouldBindJSON(&task); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	th.taskService.UpdateTask(task)
-	c.Status(http.StatusNoContent)
+
+	updatedTask, err := th.taskService.UpdateTask(taskID, task, tokenString)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, updatedTask)
 }
 
 func (th *TaskHandler) DeleteTask(c *gin.Context) {

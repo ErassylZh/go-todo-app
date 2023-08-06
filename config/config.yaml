@@ -1,0 +1,21 @@
+jwt:
+  secret_key: super_hardest_secret_key
+  expiration_hours: 24
+
+auth:
+  port: 8081
+  db_host: localhost
+  db_port: 5432
+  db_user: postgres
+  db_password: postgres
+  db_name: auth_db
+  ssl_mode: disable
+
+todo:
+  port: 8080
+  db_host: localhost
+  db_port: 5432
+  db_user: postgres
+  db_password: postgres
+  db_name: todo_db
+  ssl_mode: disable
